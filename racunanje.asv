@@ -1,0 +1,89 @@
+function podaci_za_model = racunanje(closing_p, percentage_change, open_price, hp, lp, v, b,inputs,adl)
+
+    model_inputs = zeros(9, 1);
+
+    % 1. Calculate the mean of the first 10 closing prices
+    model_inputs(1) = mean(closing_p(1:10));
+
+    % 2. Calculate the weighted average of the first 10 closing prices
+    sum_of_weights = sum(1:10);
+    weighted_sum = 0;
+    for j = 1:10
+        if isnan(closing_p(j))
+            continue;
+        end
+        weighted_sum = weighted_sum + ((10 - j + 1) * closing_p(j));
+    end
+    model_inputs(2) = weighted_sum / sum_of_weights;
+
+    % 3. Calculate the difference between the first and tenth closing prices
+    model_inputs(3) = closing_p(1) - closing_p(10);
+
+    % 4. Calculate the normalized closing price
+    LL = min(lp(1:10));
+    HH = max(hp(1:10));
+    model_inputs(4) = (closing_p(1) - LL) / (HH - LL) * 100;
+
+    % 5
+    K = inputs(4,:);
+    s = sum(K(1:9)) + model_inputs(4);
+    model_inputs(5) = s/10;
+
+    % 6
+    gains = max(diff(closing_p(1:10)), 0);
+    losses = -min(diff(closing_p(1:10)), 0);
+    avg_gain = mean(gains);
+    avg_loss = mean(losses);
+    if avg_loss == 0
+        rs = Inf; % If there are no losses, RSI is 100
+    else
+        rs = avg_gain / avg_loss;
+    end
+    model_inputs(6) = 100 - (100 / (1 + rs));
+
+    mt = (closing_p+hp+lp)/3;
+    smt = sum(mt(1:10));
+    
+    for i=1:10
+        model_inputs(7) = model_inputs(7) + abs(mt(i)-smt);
+    end
+
+    % 8. Larry William's
+    model_inputs(8) = ((max(hp(1:10)) - closing_p(1))/(max(hp(1:10))-min(lp(1:10))))*100;
+    
+    adl_array = zeros(10,1);
+    adl_array(1) = adl;
+
+    for i=2:10
+        if hp(i) ~= lp(i)
+            clv = ((closing_p(i) - lp(i)) - (hp(i) - closing_p(i))) / (hp(i) - lp(i));
+            adl_array(i) = adl_array(i-1) + (clv * v(i));
+            model_inputs(9) = adl_array(i);
+        else
+            clv = 0; % ili neka druga vrednost koja je prihvatljiva za vašu analizu
+            adl_array(i) = adl_array(i-1) + (clv * v(i));
+            model_inputs(9) = adl_array(i);
+        end
+    end
+
+    %model_inputs(10) = b(end);
+
+    % 7
+
+    % 8. Larry Williams R%
+    %model_inputs(7) = (high_price(10)-closing_price(1))/(high_price(10)-low_price(10))*100;
+
+    % 9. AD oscilator
+    %model_inputs(8) = (high_price(1)-closing_price(2))/(high_price(1)-low_price(1));
+
+    
+
+    % Here you might need additional calculations for model_inputs(5) and model_inputs(6)
+    % For now, they remain as zeros
+
+    % The output of the function is currently just the model inputs
+    % Replace this with your actual prediction logic
+    podaci_za_model = model_inputs;
+
+end
+

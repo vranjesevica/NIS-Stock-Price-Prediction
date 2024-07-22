@@ -1,0 +1,30 @@
+% Example data
+closing_p = [845;847;846;842;840;859;860;865;869;850];
+pc = [-24;12;48;24;-221;-12;-58;-46;224;-263];
+op = [859;846;841;840;842;860;860;843;850;860];
+hp = [860;850;847;850;842;860;860;869;869;860];
+lp = [843;846;841;840;840;855;860;843;850;850];
+v = [18748;285;190;488;15923;1586;590;2488;260;1176];
+
+
+
+% Call the function
+podaci_za_racunanje = racunanje(closing_p, pc, op, hp, lp,v, inputs, ADL(end));
+
+disp(net(podaci_za_racunanje));
+
+%{
+% Display the result
+disp('Podaci:');
+% Normalizacija novih ulaza koristeći iste postavke kao tokom treniranja
+normalizovani_ulazi = mapminmax('apply', podaci_za_racunanje, inputSettings);
+disp(podaci_za_racunanje);
+
+% Sada možete koristiti new_inputs_normalized kao ulaz za vašu neuronsku mrežu
+izlazi_modela = net(normalizovani_ulazi);
+
+% Ako je potrebno, denormalizujte rezultate predikcije
+konacan_rezultat = mapminmax('reverse', izlazi_modela, targetSettings);
+%}
+
+%disp(konacan_rezultat);
